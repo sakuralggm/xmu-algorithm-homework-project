@@ -1,0 +1,114 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+html,
+body {
+	font-family: "Microsoft YaHei";
+}
+ul {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+}
+
+h1 {
+	font-size: 100px;
+}
+
+main {
+	margin: 0 auto;
+	width: 1200px;
+	margin-top: 20px;
+	margin-bottom: 150px;
+	background-color: #fefefe;
+}
+
+main .nameboard {
+	height: 510px;
+	position: relative;
+	/* border: 1px solid blue; */
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	border-bottom: 3px solid #cacaca;
+	background-color: #fff;
+}
+
+
+main .nameboard .absentCheck {
+	position: absolute;
+	bottom: 100px;
+	margin-top: 70px;
+}
+
+.checkButton-enter-active, .checkButton-leave-active {
+  transition: opacity .5s;
+}
+.checkButton-enter, .checkButton-leave-to  {
+  opacity: 0;
+}
+
+.toolbar {
+	margin-top: 25px;
+	margin-bottom: 20px;
+}
+
+button {
+    vertical-align: middle;
+    margin: 0 10px 1rem 0;
+    font-family: inherit;
+    padding: .85em 1em;
+    -webkit-appearance: none;
+    border: 1px solid transparent;
+    border-radius: 0;
+    transition: background-color .25s ease-out,color .25s ease-out;
+    font-size: .9rem;
+    line-height: 1;
+    text-align: center;
+    cursor: pointer;
+    background-color: #1779ba;
+    color: #fefefe;
+}
+
+.clearButton {
+	background-color: #767676;
+}
+
+.namelist div {
+	margin-bottom: 5px;
+}
+
+.namelist p {
+	color: #666;
+	margin-bottom: 20px;
+}
+
+.namelist ul {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.namelist li {
+    display: inline-block;
+    border: 1px solid #eaeaea;
+    color: #14679e;
+    line-height: 2;
+    padding: 0 10px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.namelist .red {
+	background-color: rgba(245, 108, 108, 1);
+}
+
+.namelist .yellow {
+	background-color: rgba(230, 162, 60, 1);
+}
+
+.namelist .grey {
+	background-color: rgba(118, 120, 122, 0.4);
+}

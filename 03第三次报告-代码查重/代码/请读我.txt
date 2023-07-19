@@ -1,0 +1,13 @@
+运行方法
+在文件夹路径下打开windows powershell，输入命令：
+python duplicateChecking.py 待查重文件名1 待查重文件名2
+运行python文件
+结果会保存在新生成的result.txt中，可以在命令行直接cat result.txt查看结果
+
+示例：
+1. 测试筛查出重复率高的代码的能力
+python .\duplicateChecking.py .\test1.cpp .\test2.cpp
+cat .\result.txt
+2. 测试筛查出重复率低的代码的能力
+python .\duplicateChecking.py .\test3.cpp .\test4.cpp
+cat .\result.txt

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<script src="./js/v2.6.10/vue.js" type="text/javascript" charset="utf-8"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		<link rel="stylesheet" href="css/style.css">
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+	</head>
+	<body>
+		<div id="app">
+			<main>
+				<div class="nameboard">
+					<h1 @click="selectName">{{current.name}}</h1>
+					<transition name="checkButton">
+						<div v-show="!finishCheck && !scrollStatus" class="absentCheck">
+							<el-button type="danger" plain @click="isAbsent">缺勤</el-button>
+							<el-button type="success" plain @click="selectName">再点一个</el-button>
+						</div>
+					</transition>
+				</div>
+				<div class="toolbar">
+					<button @click="chooseFile">设置名单</button>
+					<button @click="selectName">开始/停止</button>
+					<button class="clearButton" @click="reset">清空数据</button>
+					<input type="file" id="input" @change="handleFiles($event)" accept=".txt" style="display: none;">
+					<button @click="exportData">导出数据</button>
+				</div>
+				<div class="namelist">
+					<div class="selectedStu">
+						<p>已点名单</p>
+						<ul>
+							<li v-for="(u, i) of selectedList" :key="i">
+								{{u.name}}
+							</li>
+						</ul>
+					</div>
+					<div class="absentStu">
+						<p>缺勤名单</p>
+						<ul>
+							<li v-for="(u, i) of absentList" :key="i"
+								:class="[u.pro > 3 ? 'grey' : '', u.pro <= 2 ? 'yellow' : '', u.pro === 3 ? 'red' : '']"
+								style="border-radius: 15px; color: #fff; font-weight: 700;">
+								{{u.name}}
+							</li>
+						</ul>
+					</div>
+					<div class="candidate">
+						<p>待点名列表</p>
+						<ul>
+							<li v-for="(u, i) of candidateList" :key="i">
+								{{u.name}}
+							</li>
+						</ul>
+					</div>
+				</div>
+			</main>
+		</div>
+		<script>
+			// 创建vue实例
+			new Vue({
+				// 选项
+				el: "#app", // 要和哪个元素绑定
+				data: {
+					current: {
+						name: '请导入名单'
+					},
+					initialData: [],
+					selectedList: [],
+					absentList: [],
+					candidateList: [],
+					scrollStatus: true,
+					randomList: [],
+					finishCheck: true,
+				},
+				mounted() {
+					this.scrollName();
+				},
+				methods: {
+					// 一、点名 √
+					// name那里的大字在设置名单后会不断变化，点击之后就会暂停
+					// 或者点击“开始/暂停”，点击后随机点名，将data中的name设置出来
+					// 后续动作：
+					// 1. 名字出来之后会在名字下方弹出一个框，选择是否缺勤
+					// 如果选择否，则将该名字加入已点名单，并在待选名单中将这个名字删除
+					// 如果选择是，则将该名字加入已点名单和缺勤名单，并在待选名单中将这个名字删除
+					// 2. 选择完后，这个框消失，然后名字继续变化
+					// 二、设置名单
+					// 导入一个txt，txt中有四列：学号，姓名，缺勤次数，邮箱
+					// 三、清空数据 √
+					// 将三个数组都置为0，并将name显示为无名单
+					// 四、差别显示 √
+					// 在缺勤名单中，如果这个同学缺勤三次是红色，一次和两次为黄色抄，超过三次为灰色
+					// 五、预警功能
+					// 如果点到的同学缺勤超过三次，发送邮件警告
+					// 六、动画效果
+					// 1. 点击名字后，显示两个选择按钮 √
+					// 2. 名字的滚动变化 太难了
+					chooseFile() {
+						let inputFile = document.querySelector('#input');
+						inputFile.click();
+					},
+					// 读入文件并将数据导入candidate数组
+					handleFiles(e) {
+						let file = e.target.files[0];
+						if (file.type != "text/plain") {
+							this.$message.error('只可读取txt格式的文件！');
+							return;
+						}
+
+						let reader = new FileReader();
+						reader.readAsText(file, 'utf-8');
+						reader.onload = () => {
+							this.$message({
+								message: '文件导入成功！',
+								type: 'success'
+							});
+							let res = reader.result;
+							res.split('\r\n').forEach((u) => {
+								if (u) {
+									let array = u.split(' ');
+									let obj = {
+										id: array[0],
+										name: array[1],
+										pro: Number(array[2]),
+										email: array[3]
+									};
+									this.candidateList.push(obj);
+								}
+							})
+							// console.log(this.candidateList);
+							this.initialData = this.candidateList;
+							this.scrollStatus = true;
+							this.scrollName();
+						}
+						reader.onerror = () => {
+							this.$message.error('文件导入失败');
+						}
+					},
+					// 随机函数左闭右闭
+					getRandom(min, max) {
+						return Math.floor(Math.random() * (max - min + 1) + min);
+					},
+					// 实现名字的变化
+					scrollName() {
+						if (this.candidateList.length === 0) {
+							this.scrollStatus = false;
+							this.$message.error('名单是空的');
+							return;
+						} else {
+							if (this.randomList.length === 0) {
+								this.candidateList.map((item) => {
+									for (let i = 0; i <= item.pro; i++) {
+										this.randomList.push(item);
+									}
+								})
+							}
+							setTimeout(() => {
+								let res = this.getRandom(0, this.randomList.length - 1);
+								this.current = this.randomList[res];
+								if (this.scrollStatus) {
+									this.scrollName();
+								}
+							}, 100);
+						}
+					},
+					// 选中名字
+					selectName() {
+						if (this.scrollStatus) {
+							this.scrollStatus = false;
+							this.finishCheck = false;
+							setTimeout(() => {
+								this.selectedList.push(this.current);
+								this.randomList = [];
+								this.candidateList = this.candidateList.filter(item => item !== this.current);
+							}, 100)
+						} else {
+							this.scrollStatus = true;
+							this.scrollName();
+						}
+					},
+					// 是否缺勤
+					isAbsent() {
+						console.log(this.current.id);
+						this.current.pro++;
+						this.absentList.push(this.current);
+						this.finishCheck = true;
+						this.scrollStatus = true;
+						this.scrollName();
+					},
+					// 清空数据
+					reset() {
+						this.selectedList = [];
+						this.randomList = [];
+						this.candidateList = [];
+						this.absentList = [];
+						this.finishCheck = true;
+						this.current.name = '请导入名单';
+					},
+					exportRaw(name, data) {
+						var urlObject = window.URL || window.webkitURL || window;
+						console.log(data);
+						var export_blob = new Blob(data);
+						var save_link = document.createElementNS("http://www.w3.org/1999/xhtml", "a")
+						save_link.href = urlObject.createObjectURL(export_blob);
+						save_link.download = name;
+						this.fakeClick(save_link);
+					},
+					fakeClick(obj) {
+						var ev = document.createEvent("MouseEvents");
+						ev.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0,
+							null);
+						obj.dispatchEvent(ev);
+					},
+					exportData() {
+						let strArray = [];
+						this.initialData.map((u) => {
+							if (u.pro <= 3)
+								strArray.push(`${u.id} ${u.name} ${u.pro} ${u.email}\r\n`);
+						})
+						this.exportRaw('nameList.txt', strArray);
+						this.$message({
+							message: '名单导出成功',
+							type: 'success'
+						});
+					},
+				}
+			})
+		</script>
+	</body>
+</html>
